@@ -6,6 +6,11 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import scala.Tuple2;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,16 +51,33 @@ public class Ex4InvertedIndex {
 
     // for each tweet, extract all the hashtag and then create couples (hashtag,tweet)
     // Hint: see the flatMapToPair method
-    // TODO write code here
-    JavaPairRDD<String, Tweet> pairs = null;
+    JavaPairRDD<String, Tweet> pairs = tweets.flatMapToPair(tweet -> {
+      List results = new ArrayList();
+      List<String> hashtags = new ArrayList<>();
+      List<String> words = Arrays.asList(tweet.getText().split(" "));
+
+      // Add all found hashtags to hashtags ArrayList
+      for (String word: words) {
+        if(word.startsWith("#") && word.length() > 1) {
+          hashtags.add(word);
+        }
+      }
+
+      // Assign current tweet to all found hashtags in text
+      for (String hashtag: hashtags) {
+        Tuple2<String, Tweet> result = new Tuple2<>(hashtag, tweet);
+        results.add(result);
+      }
+
+      return results; // (hashtag, tweet)
+    });
+
 
     // We want to group the tweets by hashtag
-    // TODO write code here
-    JavaPairRDD<String, Iterable<Tweet>> tweetsByHashtag = null;
+    JavaPairRDD<String, Iterable<Tweet>> tweetsByHashtag = pairs.groupByKey(); // (hashtag, [tweet, tweet])
 
     // Then return the inverted index (= a map structure)
-    // TODO write code here
-    Map<String, Iterable<Tweet>> map = null;
+    Map<String, Iterable<Tweet>> map = tweetsByHashtag.collectAsMap();
 
     return map;
   }
