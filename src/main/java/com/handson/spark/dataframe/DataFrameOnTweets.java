@@ -58,16 +58,13 @@ public class DataFrameOnTweets {
 
     // Create a sql context: the SQLContext wraps the SparkContext, and is specific to Spark SQL.
     // It is the entry point in Spark SQL.
-    // TODO write code here
-    SQLContext sqlContext = null;
+    SQLContext sqlContext = new SQLContext(sc);
 
     // load the data as dataframe from the json file
     // Hint: use the sqlContext and apply the read method before loading the json file
-    // TODO write code here
-    DataFrame dataFrame = null;
+    DataFrame dataFrame = sqlContext.read().json(pathToFile);
 
     return dataFrame;
-
   }
 
   /**
@@ -77,8 +74,7 @@ public class DataFrameOnTweets {
     DataFrame dataFrame = loadData();
 
     // Displays the content of the DataFrame to stdout
-    // TODO write code here
-
+    dataFrame.show();
   }
 
   /**
@@ -88,7 +84,7 @@ public class DataFrameOnTweets {
     DataFrame dataFrame = loadData();
 
     // Print the schema
-    // TODO write code here
+    dataFrame.printSchema();
   }
 
   /**
@@ -98,9 +94,7 @@ public class DataFrameOnTweets {
     DataFrame dataFrame = loadData();
 
     // Find all the persons which are located in Paris
-    // TODO write code here
-    DataFrame filtered = null;
-
+    DataFrame filtered = dataFrame.filter(dataFrame.col("place").equalTo("Paris")).toDF();
     return filtered;
 
   }
@@ -112,15 +106,11 @@ public class DataFrameOnTweets {
     DataFrame dataFrame = loadData();
 
     // group the tweets by user first
-    // TODO write code here
-    DataFrame countByUser = null;
-
+    DataFrame countByUser = dataFrame.groupBy(dataFrame.col("user")).count();
     // sort by descending order and take the first one
-    // TODO write code here
-    JavaRDD<Row> result = null;
+    JavaRDD<Row> result = countByUser.javaRDD().sortBy(x -> x.get(1), false, 1);
 
     return result.first();
-
   }
 
 }
