@@ -8,6 +8,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -59,11 +60,11 @@ public class Ex2TweetMining {
 
     // You want to return an RDD with the mentions
     // Hint: think about separating the word in the text field and then find the mentions
-    // TODO write code here
-    JavaRDD<String> mentions = null;
+    JavaRDD<String> mentions = tweets.flatMap(tweet -> Arrays.asList(tweet.getText().split(" ")))
+            .filter(word -> word.startsWith("@") && word.length() > 1);
 
+    System.out.println("Mentions count: " + mentions.count());
     return mentions;
-
   }
   /**
    *  Count how many times each person is mentioned
@@ -72,8 +73,8 @@ public class Ex2TweetMining {
     JavaRDD<String> mentions = mentionOnTweet();
 
     // Hint: think about what you did in the wordcount example
-    // TODO write code here
-    JavaPairRDD<String, Integer> mentionCount = null;
+    JavaPairRDD<String, Integer> mentionCount = mentions.mapToPair(mention -> new Tuple2<>(mention, 1))
+            .reduceByKey(Integer::sum);
 
     return mentionCount;
   }
@@ -85,8 +86,8 @@ public class Ex2TweetMining {
     JavaPairRDD<String, Integer> counts = countMentions();
 
     // Hint: take a look at the sorting and take methods
-    // TODO write code here
-    List<Tuple2<Integer, String>> mostMentioned = null;
+    List<Tuple2<Integer, String>> mostMentioned = counts.mapToPair(pair -> new Tuple2<>(pair._2, pair._1))
+            .sortByKey(false).take(10);
 
     return mostMentioned;
   }

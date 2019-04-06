@@ -6,6 +6,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import scala.Tuple2;
 
 /**
  *  The Java Spark API documentation: http://spark.apache.org/docs/latest/api/java/index.html
@@ -44,7 +45,7 @@ public class Ex1UserMining {
     // Load the data and parse it into a Tweet.
     // Look at the Tweet Object in the TweetUtils class.
     JavaRDD<Tweet> tweets = sc.textFile(pathToFile)
-                              .map(line -> Parse.parseJsonToTweet(line));
+                              .map(Parse::parseJsonToTweet);
 
     return tweets;
   }
@@ -55,9 +56,8 @@ public class Ex1UserMining {
   public JavaPairRDD<String, Iterable<Tweet>> tweetsByUser() {
     JavaRDD<Tweet> tweets = loadData();
 
-    // TODO write code here
     // Hint: the Spark API provides a groupBy method
-    JavaPairRDD<String, Iterable<Tweet>> tweetsByUser = null;
+    JavaPairRDD<String, Iterable<Tweet>> tweetsByUser = tweets.groupBy(Tweet::getUser);
 
     return tweetsByUser;
   }
@@ -68,9 +68,10 @@ public class Ex1UserMining {
   public JavaPairRDD<String, Integer> tweetByUserNumber() {
     JavaRDD<Tweet> tweets = loadData();
 
-    // TODO write code here
     // Hint: think about what you did in the wordcount example
-    JavaPairRDD<String, Integer> count = null;
+    JavaPairRDD<String, Integer> count =
+            tweets.mapToPair(tweet -> new Tuple2<>(tweet.getUser(), 1))
+            .reduceByKey(Integer::sum);
 
     return count;
   }

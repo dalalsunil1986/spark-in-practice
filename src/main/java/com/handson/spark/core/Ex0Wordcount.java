@@ -4,6 +4,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import scala.Tuple2;
 
 import java.util.Arrays;
 
@@ -58,15 +59,13 @@ public class Ex0Wordcount {
     // Step 1: the mapper step
     // The philosophy: we want to attribute the number 1 to each word: so we create couples (word, 1) using the Tuple2 class.
     // Hint: look at the mapper methods provided by Spark
-    // TODO write code here
-    JavaPairRDD<String, Integer> couples = null;
+    JavaPairRDD<String, Integer> couples = words.mapToPair(word -> new Tuple2<>(word, 1));
 
     // Step 2: reducer step
     // The philosophy: now you have a couple (key, value) where the key is a word, you want to aggregate the value for each word.
     // So you will use a reducer function.
     // Hint: the Spark API provides some reduce methods
-    // TODO write code here
-    JavaPairRDD<String, Integer> result = null;
+    JavaPairRDD<String, Integer> result = couples.reduceByKey(Integer::sum);
 
     return result;
   }
@@ -78,8 +77,7 @@ public class Ex0Wordcount {
     JavaPairRDD<String, Integer> wordcounts = wordcount();
 
     // Hint: the Spark API provides a filter method
-    // TODO write code here
-    JavaPairRDD<String, Integer> filtered = null;
+    JavaPairRDD<String, Integer> filtered = wordcounts.filter(word -> word._2 > 4);
 
     return filtered;
 
